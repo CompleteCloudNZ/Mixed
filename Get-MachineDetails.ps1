@@ -1,6 +1,7 @@
 $servers = "localhost"
 #Run the commands for each server in the list
 $infoColl = @()
+
 Foreach ($s in $servers)
 {
 	$CPUInfo = Get-WmiObject Win32_Processor -ComputerName $s #Get CPU Information
@@ -12,18 +13,19 @@ Foreach ($s in $servers)
     $IPAddress = (Get-WmiObject -Class Win32_NetworkAdapterConfiguration -ComputerName $s |where {($_.DefaultIPGateway -ne $null) -and ($_.DefaultIPGateway -like "*.*")}).IPAddress
 	Foreach ($CPU in $CPUInfo)
 	{
-		$infoObject = New-Object PSObject
-		#The following add data to the infoObjects.	
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "ServerName" -value $CPU.SystemName
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "Processor" -value $CPU.Name
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "IP_Address" -value $IPAddress.toString()
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "Model" -value $CPU.Description
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "Manufacturer" -value $CPU.Manufacturer
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "PhysicalCores" -value $CPU.NumberOfCores
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "LogicalCores" -value $CPU.NumberOfLogicalProcessors
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "OS_Name" -value $OSInfo.Caption
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "OS_Version" -value $OSInfo.Version
-		Add-Member -inputObject $infoObject -memberType NoteProperty -name "TotalPhysical_Memory_GB" -value $PhysicalMemory
+
+		$infoObject = New-Object PSObject -Property @{            
+			ServerName					= $CPU.SystemName
+			Processor					= $CPU.Name
+			IP_Address					= $IPAddress.toString()
+			Model						= $CPU.Description
+			Manufacturer				= $CPU.Manufacturer
+			PhysicalCores				= $CPU.NumberOfCores
+			LogicalCores				= $CPU.NumberOfLogicalProcessors
+			OS_Name						= $OSInfo.Caption
+			OS_Version					= $OSInfo.Version
+			Memory						= $PhysicalMemory
+		}               
 
 		$infoObject #Output to the screen for a visual feedback.
 		$infoColl += $infoObject

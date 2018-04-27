@@ -1,2 +1,2 @@
-"ServerName","Processor","IP_Address","Model","Manufacturer","PhysicalCores","LogicalCores","OS_Name","OS_Version","TotalPhysical_Memory_GB"
-"DESKTOP-O5MHAD3","AMD Ryzen 7 1700 Eight-Core Processor          ","System.String[]","AMD64 Family 23 Model 1 Stepping 1","AuthenticAMD","4","8","Microsoft Windows 10 Pro N","10.0.16299","16"
+"Model","OS_Name","ServerName","IP_Address","OS_Version","Memory","PhysicalCores","Processor","Manufacturer","LogicalCores"
+"AMD64 Family 23 Model 1 Stepping 1","Microsoft Windows 10 Pro N","DESKTOP-O5MHAD3","System.String[]","10.0.16299","16","4","AMD Ryzen 7 1700 Eight-Core Processor          ","AuthenticAMD","8"
