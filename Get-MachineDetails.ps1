@@ -1,4 +1,4 @@
-$servers = Get-Content .\Serverlist.txt
+$servers = "localhost"
 #Run the commands for each server in the list
 $infoColl = @()
 Foreach ($s in $servers)
