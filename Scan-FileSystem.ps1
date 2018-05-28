@@ -51,6 +51,7 @@ $result = @($monitoredFolders.source | ? { Test-Path -Path $_ } | % {
 
             $monitoredFolders |Out-File -FilePath d:\testing\out.log;
             $connectionDetails |Out-File -FilePath d:\testing\out.log -Append;
+
             Write-Host "The file '$FileName' from '$FilePath' was $changeType at $timeStamp with $folderID";
             Write-Host "Connecting to SFTP server" $connectionDetails.destinationserver
             $Password = ConvertTo-SecureString 'Password!' -AsPlainText -Force
@@ -58,7 +59,7 @@ $result = @($monitoredFolders.source | ? { Test-Path -Path $_ } | % {
 
             Import-Module Posh-SSH
             $newSSHSession = New-SFTPSession -ComputerName $connectionDetails.destinationserver -Credential $Credential
-            $newSSHSession
+
             Write-Host "Copying" $path "to" $connectionDetails.destinationserver
             $SftpPath = "/"+$connectionDetails.destinationpath
             $result = Set-SFTPFile -SessionId ($newSSHSession).SessionId -LocalFile $path -RemotePath $SftpPath
