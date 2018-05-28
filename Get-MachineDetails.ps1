@@ -10,7 +10,7 @@ Foreach ($s in $servers)
 	$OSTotalVirtualMemory = [math]::round($OSInfo.TotalVirtualMemorySize / 1MB, 2)
 	$OSTotalVisibleMemory = [math]::round(($OSInfo.TotalVisibleMemorySize / 1MB), 2)
 	$PhysicalMemory = Get-WmiObject CIM_PhysicalMemory -ComputerName $s | Measure-Object -Property capacity -Sum | % { [Math]::Round(($_.sum / 1GB), 2) }
-    $IPAddress = (Get-WmiObject -Class Win32_NetworkAdapterConfiguration -ComputerName $s |where {($_.DefaultIPGateway -ne $null) -and ($_.DefaultIPGateway -like "*.*")}).IPAddress
+    $IPAddress = (Get-WmiObject -Class Win32_NetworkAdapterConfiguration -ComputerName $s |Where-Object {($_.DefaultIPGateway -ne $null) -and ($_.DefaultIPGateway -like "*.*")}).IPAddress
 	Foreach ($CPU in $CPUInfo)
 	{
 
