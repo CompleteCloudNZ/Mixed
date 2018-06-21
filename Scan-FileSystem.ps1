@@ -10,6 +10,7 @@
 #>
 
 $monitoredFolders = Import-Csv .\sshmatrix.csv
+$transferedFolder = "D:\Testing\Transfered"
 
 function Move-Files($path, $name)
 {
@@ -18,6 +19,61 @@ function Move-Files($path, $name)
 
 $folder = '\\192.168.21.67\Scripts' # Enter the root path you want to monitor.
 $filter = '*.*'  # You can enter a wildcard filter here.
+
+# On startup, we need to check to see if any files were previously missed
+
+foreach($folder in $monitoredFolders)
+{
+    $existingItems = Get-ChildItem -Path $folder.source
+    foreach($item in $existingItems)
+    {
+        Write-Host "Found" $item.FullName -ForegroundColor Yellow
+        Move-Files($item.FullName,$folder.destinationpath)
+
+        try {
+            $Password = ConvertTo-SecureString 'Password!' -AsPlainText -Force
+            $Credential = New-Object System.Management.Automation.PSCredential ('sovereign', $Password)
+
+            Import-Module Posh-SSH
+            $newSSHSession = New-SFTPSession -ComputerName $folder.destinationserver -Credential $Credential
+
+            Write-Host "Copying" $item.FullName "to" $folder.destinationserver
+            $SftpPath = "/"+$folder.destinationpath
+            $result = Set-SFTPFile -SessionId ($newSSHSession).SessionId -LocalFile $item.FullName -RemotePath $SftpPath
+
+            $result | Out-File -FilePath d:\testing\transmit.log -Append
+            Write-Host "Disconnecting from" $folder.destinationserver
+            Remove-SFTPSession -SessionId ($newSSHSession).SessionId
+
+            $count = 1;
+            $fullpath = $transferedFolder+"\"+$item.Name
+
+            # check if the path exists, and if it does increment in ones until we find a filename
+            Write-Host $fullpath
+            if(Test-Path $fullpath)
+            {
+                do
+                {
+                    $filenumber = $count.ToString()+"-"+$item.Name
+                    $fullpath = $transferedFolder+"\"+$filenumber
+                    $count++
+                    $fullpath
+                } while(Test-Path $fullpath)
+            }
+
+            Write-Host "Found valid destination name" $fullpath
+            Move-Item $item.FullName -Destination $fullpath -Verbose
+        }
+        catch {
+            $_ |Out-File -FilePath d:\testing\verboseout.log -Append           
+        }
+
+    }
+}
+
+<#
+ # This section puts the hooks in using the .NET api
+ #>
 
 $result = @($monitoredFolders.source | ? { Test-Path -Path $_ } | % {
 
@@ -38,9 +94,9 @@ $result = @($monitoredFolders.source | ? { Test-Path -Path $_ } | % {
         $name = $Event.SourceEventArgs.Name;
         $changeType = $Event.SourceEventArgs.ChangeType;
         $timeStamp = $Event.TimeGenerated;
+        $transferedFolder = "D:\Testing\Transfered"
 
-        #Start-Job -ScriptBlock {.\Move-File.ps1 -Path $path}
-        #Move-Item -Path $path -Destination D:\Testing
+
         try {
             $FilePath = Split-Path $path -Parent;
             $FileName = Split-Path $path -Leaf;
@@ -55,7 +111,7 @@ $result = @($monitoredFolders.source | ? { Test-Path -Path $_ } | % {
             Write-Host "The file '$FileName' from '$FilePath' was $changeType at $timeStamp with $folderID";
             Write-Host "Connecting to SFTP server" $connectionDetails.destinationserver
             $Password = ConvertTo-SecureString 'Password!' -AsPlainText -Force
-            $Credential = New-Object System.Management.Automation.PSCredential ('user', $Password)
+            $Credential = New-Object System.Management.Automation.PSCredential ('sovereign', $Password)
 
             Import-Module Posh-SSH
             $newSSHSession = New-SFTPSession -ComputerName $connectionDetails.destinationserver -Credential $Credential
@@ -68,10 +124,27 @@ $result = @($monitoredFolders.source | ? { Test-Path -Path $_ } | % {
             Write-Host "Disconnecting from" $connectionDetails.destinationserver
             Remove-SFTPSession -SessionId ($newSSHSession).SessionId
 
-            Move-Item $path -Destination "D:\Testing\Transfered"
+            $count = 1;
+            $fullpath = $transferedFolder+"\"+$FileName
+
+            # check if the path exists, and if it does increment in ones until we find a filename
+            Write-Host $fullpath
+            if(Test-Path $fullpath)
+            {
+                do
+                {
+                    $filenumber = $count.ToString()+"-"+$FileName
+                    $fullpath = $transferedFolder+"\"+$filenumber
+                    $count++
+                    $fullpath
+                } while(Test-Path $fullpath)
+            }
+
+            Write-Host "Found valid destination name" $fullpath "from" $path
+            Move-Item $path -Destination $fullpath -Verbose
         }
         catch {
-            $_ |Out-File -FilePath d:\testing\verboseout.log;           
+            $_ |Out-File -FilePath d:\testing\verboseout.log -Append           
         }
         
     };
