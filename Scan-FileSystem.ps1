@@ -12,10 +12,6 @@
 $monitoredFolders = Import-Csv .\sshmatrix.csv
 $transferedFolder = "D:\Testing\Transfered"
 
-function Move-Files($path, $name)
-{
-    Write-Host "I would copy '$path' this "
-}
 
 $folder = '\\192.168.21.67\Scripts' # Enter the root path you want to monitor.
 $filter = '*.*'  # You can enter a wildcard filter here.
@@ -28,11 +24,10 @@ foreach($folder in $monitoredFolders)
     foreach($item in $existingItems)
     {
         Write-Host "Found" $item.FullName -ForegroundColor Yellow
-        Move-Files($item.FullName,$folder.destinationpath)
 
         try {
             $Password = ConvertTo-SecureString 'Password!' -AsPlainText -Force
-            $Credential = New-Object System.Management.Automation.PSCredential ('sovereign', $Password)
+            $Credential = New-Object System.Management.Automation.PSCredential ('user', $Password)
 
             Import-Module Posh-SSH
             $newSSHSession = New-SFTPSession -ComputerName $folder.destinationserver -Credential $Credential
@@ -111,7 +106,7 @@ $result = @($monitoredFolders.source | ? { Test-Path -Path $_ } | % {
             Write-Host "The file '$FileName' from '$FilePath' was $changeType at $timeStamp with $folderID";
             Write-Host "Connecting to SFTP server" $connectionDetails.destinationserver
             $Password = ConvertTo-SecureString 'Password!' -AsPlainText -Force
-            $Credential = New-Object System.Management.Automation.PSCredential ('sovereign', $Password)
+            $Credential = New-Object System.Management.Automation.PSCredential ('user', $Password)
 
             Import-Module Posh-SSH
             $newSSHSession = New-SFTPSession -ComputerName $connectionDetails.destinationserver -Credential $Credential
